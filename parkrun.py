@@ -11,6 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
+omap = map
+map = lambda *a, **k: list(omap(*a, **k))
+
 # Age categories
 allCats = ['JM10', 'JM11-14', 'JM15-17', 'JW10', 'JW11-14', 'JW15-17',
        'SM18-19', 'SM20-24', 'SM25-29', 'SM30-34', 'SW20-24', 'SW25-29',
