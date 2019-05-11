@@ -66,7 +66,7 @@ def importResults(infile,skiprows=13,skipfooter=36,removeUnknowns=True,report=Fa
             'Club','Note','Total Runs','Badges']
             
     # read input file (skipfooter requires python engine)
-    results = pd.read_csv(infile,sep='\t',skiprows=13,skipfooter=36,header=None,  
+    results = pd.read_csv(infile,sep='\t',skiprows=skiprows,skipfooter=skipfooter,header=None,
                       engine='python',names=colNames,index_col='Position',
                       converters={'Time': timeString_to_minutes, 'Age Grade':convertPercent})
     
