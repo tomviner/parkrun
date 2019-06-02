@@ -5,7 +5,7 @@ See http://www.parkrun.org.uk/ for more information about parkrun.
 :author: Joseph Barraud
 :license: BSD License
 """
-import os.path,datetime
+import os.path, datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -34,7 +34,7 @@ def timeString_to_minutes(x):
     '''
     Convert time from a string 'hh:mm:ss' to number of minutes as a float
     '''
-    xlist = map(int,x.split(':'))
+    xlist = map(int, x.split(':'))
     try:
         time = 60*xlist[0]+xlist[1]+xlist[2]/60. # rare case when time is larger than one hour
     except:
@@ -45,33 +45,33 @@ def minutes_to_timeString(x):
     '''
     Return time in minutes to string formatted as 'mm:ss'
     '''
-    return '{}:{:02.0f}'.format(int(x),round((x-int(x))*60))
+    return '{}:{:02.0f}'.format(int(x), round((x-int(x))*60))
 
-def timeFormat(x,pos):
+def timeFormat(x, pos):
     '''
     Return time formatted as a string 'mm:ss'
     pos is not used but necessary because this function can be used in
     matplotlib.ticker.FuncFormatter(func)
     '''
-    return '{}:{:02.0f}'.format(int(x),round((x-int(x))*60))
+    return '{}:{:02.0f}'.format(int(x), round((x-int(x))*60))
 
 #==============================================================================
 #  importResults
 #==============================================================================
-def importResults(infile,skiprows=13,skipfooter=36,removeUnknowns=True,report=False):
+def importResults(infile, skiprows=13, skipfooter=36, removeUnknowns=True, report=False):
     '''
     Import results table from a text file into a pandas dataframe
     '''
-    colNames=['Position','Runner','Time','Age Cat','Age Grade','Gender','Gender Pos',
-            'Club','Note','Total Runs','Badges']
+    colNames=['Position', 'Runner', 'Time', 'Age Cat', 'Age Grade', 'Gender', 'Gender Pos',
+            'Club', 'Note', 'Total Runs', 'Badges']
 
     # read input file (skipfooter requires python engine)
-    results = pd.read_csv(infile,sep='\t',skiprows=skiprows,skipfooter=skipfooter,header=None,
-                      engine='python',names=colNames,index_col='Position',
+    results = pd.read_csv(infile, sep='\t', skiprows=skiprows, skipfooter=skipfooter, header=None,
+                      engine='python', names=colNames, index_col='Position',
                       converters={'Time': timeString_to_minutes, 'Age Grade':convertPercent})
 
     # drop less interesting columns
-    results = results.drop(['Club','Note','Badges'],axis=1)
+    results = results.drop(['Club', 'Note', 'Badges'], axis=1)
 
     # a few parameters
     totalRunners = len(results)
@@ -80,13 +80,13 @@ def importResults(infile,skiprows=13,skipfooter=36,removeUnknowns=True,report=Fa
     maleRunners = np.sum(results['Gender']=='M')
 
     # apply correct dtypes (can't apply before because of the python engine)
-    results[['Time','Age Grade']] = results[['Time','Age Grade']].astype('float')
+    results[['Time', 'Age Grade']] = results[['Time', 'Age Grade']].astype('float')
 
     # remove unknown entries (NaN)
     if removeUnknowns:
         results = results[results['Runner'] != 'Unknown']
         # convert two columns to integers (would otherwise remain as floats)
-        results[['Gender Pos','Total Runs']] = results[['Gender Pos','Total Runs']].astype('int')
+        results[['Gender Pos', 'Total Runs']] = results[['Gender Pos', 'Total Runs']].astype('int')
 
     # report
     if report:
@@ -104,14 +104,14 @@ def importResults(infile,skiprows=13,skipfooter=36,removeUnknowns=True,report=Fa
 #==============================================================================
 # print_stats
 #==============================================================================
-def print_stats(results,feature='Time'):
+def print_stats(results, feature='Time'):
     '''
     Print a few statistical quantities and format the results depending on
     the type of data (time or not).
     '''
 
     print('Basic statistics on {}:'.format(feature))
-    print('Runners,Male %,Mean,Std,Min,25%,Median,75%,Max')
+    print('Runners, Male %, Mean, Std, Min, 25%, Median, 75%, Max')
     totalRunners = len(results)
     totalUnknowns = len(results[results['Runner'] == 'Unknown'])
     validEntries = totalRunners - totalUnknowns
@@ -119,21 +119,21 @@ def print_stats(results,feature='Time'):
     stats = results[feature].describe()
 
     if feature == 'Time':
-        formatted_stats = map(minutes_to_timeString,stats.tolist()[1:])
+        formatted_stats = map(minutes_to_timeString, stats.tolist()[1:])
     elif feature == 'Age Grade':
-        formatted_stats = map(lambda x:'{:.1f}'.format(x),(stats*100).tolist()[1:])
+        formatted_stats = map(lambda x:'{:.1f}'.format(x), (stats*100).tolist()[1:])
     else:
         formatted_stats = stats.tolist()[1:]
 
-    stats_list = [totalRunners,100*float(maleRunners)/validEntries]
+    stats_list = [totalRunners, 100*float(maleRunners)/validEntries]
     stats_list = stats_list + formatted_stats
 
-    print('{},{:.1f}%,{},{},{},{},{},{},{}'.format(*stats_list))
+    print('{}, {:.1f}%, {}, {}, {}, {}, {}, {}, {}'.format(*stats_list))
 
 #==============================================================================
 # resample_AgeCat
 #==============================================================================
-def resample_AgeCat(results,nsamples=5):
+def resample_AgeCat(results, nsamples=5):
     '''
     Pick a number of samples from each Age Categories
     '''
@@ -143,7 +143,7 @@ def resample_AgeCat(results,nsamples=5):
         # pick samples randomly
         try:
             newResults = newResults.append(
-                results[results['Age Cat']==cat].sample(n=nsamples,replace=False))
+                results[results['Age Cat']==cat].sample(n=nsamples, replace=False))
         except: # in case the category is empty
             pass
     return newResults
@@ -151,14 +151,14 @@ def resample_AgeCat(results,nsamples=5):
 #==============================================================================
 # resample
 #==============================================================================
-def resample(results1,results2,nsamples=50,nCats=10):
+def resample(results1, results2, nsamples=50, nCats=10):
     '''
     Pick a number of samples from results2 according to distribution in results1
     '''
 
     # create Age Grade categories
     results1['AG_Cat'] = pd.cut(results1['Age Grade']*100,
-                bins=range(0,100+100/nCats,100/nCats),labels=range(0,nCats))
+                bins=range(0, 100+100/nCats, 100/nCats), labels=range(0, nCats))
     counts = results1['AG_Cat'].value_counts()
 
     # counts for each category become the weights used for sampling
@@ -166,32 +166,32 @@ def resample(results1,results2,nsamples=50,nCats=10):
 
     # do the same for results2 but calculate weights according to results1
     results2['AG_Cat'] = pd.cut(results2['Age Grade']*100,
-                bins=range(0,100+100/nCats,100/nCats),labels=range(0,nCats))
+                bins=range(0, 100+100/nCats, 100/nCats), labels=range(0, nCats))
 
     # the weights are taken from the first distribution
     results2['weights'] = [counts[x] for x in results2['AG_Cat']]
 
     # return resampled data using weights
-    return results2.sample(n=nsamples,weights='weights',replace=False)
+    return results2.sample(n=nsamples, weights='weights', replace=False)
 
 #==============================================================================
 # time_hist
 #==============================================================================
-def time_hist(results,title=None,style='bmh'):
+def time_hist(results, title=None, style='bmh'):
     '''
     Draw an histogram of the time results with basic stats added in the corner
     '''
     # reset style first (if style has been changed before running the script)
     plt.style.use('classic')
     plt.style.use(style)
-    plt.style.use(r'.\large_font.mplstyle')
+    # plt.style.use(r'.\large_font.mplstyle')
 
-    fig, ax = plt.subplots(figsize=(10,8))
-    ax.hist(results['Time'],bins=range(15,61))
-    ax.set_xlim(15,60)
-    ax.set_xlabel('Time (min)',size='x-large')
-    ax.set_ylim(0,40)
-    ax.set_ylabel('Count',size='x-large')
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.hist(results['Time'], bins=range(15, 61))
+    ax.set_xlim(15, 60)
+    ax.set_xlabel('Time (min)', size='x-large')
+    ax.set_ylim(0, 40)
+    ax.set_ylabel('Count', size='x-large')
     plt.title(title)
 
     # add stats in a box in the corner
@@ -205,26 +205,27 @@ def time_hist(results,title=None,style='bmh'):
 
     font0 = FontProperties()
     font0.set_family('monospace')
-    ax.text(47,30,stats_text,fontsize=14,fontproperties=font0,bbox=dict(facecolor='white'))
+    ax.text(47, 30, stats_text, fontsize=14, fontproperties=font0, bbox=dict(facecolor='white'))
+    return plt
 
 #==============================================================================
 # ageGrade_hist
 #==============================================================================
-def ageGrade_hist(results,title=None,style='bmh'):
+def ageGrade_hist(results, title=None, style='bmh'):
     '''
     Draw an histogram of the Age Grade results with basic stats added in the corner
     '''
     # reset style first (if style has been changed before running the script)
     plt.style.use('classic')
     plt.style.use(style)
-    plt.style.use(r'.\large_font.mplstyle')
+    # plt.style.use(r'.\large_font.mplstyle')
 
-    fig, ax = plt.subplots(figsize=(10,8))
-    ax.hist(results['Age Grade']*100,bins=np.arange(0,100,5),color='#A60628')
-    #ax.set_xlim(15,60)
-    ax.set_xlabel('Age Grade %',size='x-large')
-    #ax.set_ylim(0,40)
-    ax.set_ylabel('Count',size='x-large')
+    fig, ax = plt.subplots(figsize=(10, 8))
+    ax.hist(results['Age Grade']*100, bins=np.arange(0, 100, 5), color='#A60628')
+    #ax.set_xlim(15, 60)
+    ax.set_xlabel('Age Grade %', size='x-large')
+    #ax.set_ylim(0, 40)
+    ax.set_ylabel('Count', size='x-large')
     plt.title(title)
 
     # add stats in a box
@@ -233,12 +234,13 @@ def ageGrade_hist(results,title=None,style='bmh'):
     stats_text = "Count  = {:.0f}\nMean   = {:.1f}%\nMedian = {:.1f}%" +\
                 "\nMin    = {:.1f}%\nMax    = {:.1f}%"
     stats_text = stats_text.format(stats['count'],
-                                   stats['mean'],stats['50%'],
-                                   stats['min'],stats['max'])
+                                   stats['mean'], stats['50%'],
+                                   stats['min'], stats['max'])
     font0 = FontProperties()
     font0.set_family('monospace')
-    ax.text(0.72,0.75,stats_text,fontsize=14,fontproperties=font0,
-            bbox=dict(facecolor='white'),transform=ax.transAxes)
+    ax.text(0.72, 0.75, stats_text, fontsize=14, fontproperties=font0,
+            bbox=dict(facecolor='white'), transform=ax.transAxes)
+    return plt
 
 #==============================================================================
 # plot_AgeCat
@@ -249,6 +251,6 @@ def plot_AgeCat(results):
     '''
     age_count = results['Age Cat'].value_counts()
     age_count.sort_index(inplace=True) # order categories in alphabetical order
-    fig, ax = plt.subplots(figsize=(10,8))
-    age_count.plot(kind='barh',ax=ax)
-    ax.set_xlabel('Number of runners',size='x-large')
+    fig, ax = plt.subplots(figsize=(10, 8))
+    age_count.plot(kind='barh', ax=ax)
+    ax.set_xlabel('Number of runners', size='x-large')
